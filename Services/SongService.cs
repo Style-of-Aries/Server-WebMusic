@@ -1,23 +1,23 @@
 using MyApi.DTOs.Songs;
 using MyApi.Models;
-using MyApi.Repositories;
+using MyApi.Interfaces;
 
 namespace MyApi.Services
 {
     public class SongService
     {
-        private readonly SongRepository _songRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<SongService> _logger;
 
-        public SongService(SongRepository songRepository, ILogger<SongService> logger)
+        public SongService(IUnitOfWork unitOfWork, ILogger<SongService> logger)
         {
-            _songRepository = songRepository;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
         public async Task<IEnumerable<Song>> GetAllSongsAsync()
         {
-            var songs = await _songRepository.GetAllSongsAsync();
+            var songs = await _unitOfWork.Songs.GetAllSongsAsync();
             return songs;
         }
         public async Task<Song> CreateSongAsync(SongCreateDto dto)
@@ -59,7 +59,7 @@ namespace MyApi.Services
                 FileImage = $"/images/{fileImageName}"
             };
 
-            await _songRepository.AddSongAsync(newSong);
+            await _unitOfWork.Songs.AddSongAsync(newSong);
             _logger.LogInformation("Song created: {Title} by {Artist}", newSong.Title, newSong.Artist);
             return newSong;
         }

@@ -4,6 +4,8 @@ using MyApi.Data;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using MyApi.Repositories;
+using MyApi.Interfaces;
+using MyApi.Middlewares;
 using MyApi.Services;
 
 using System.Text;
@@ -17,47 +19,29 @@ builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // Cho phép 100MB
 });
-
-var jwtKey =
-builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is missing in appsettings.json");
-
-var key = Encoding.UTF8.GetBytes(jwtKey);
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-
-.AddJwtBearer(options =>
-{
-
-    options.TokenValidationParameters =
-    new TokenValidationParameters
+    .AddJwtBearer(options =>
     {
-
-        ValidateIssuer = true,
-
-        ValidateAudience = true,
-
-        ValidateLifetime = true,
-
-        ValidateIssuerSigningKey = true,
-
-        ValidIssuer =
-    builder.Configuration["Jwt:Issuer"],
-
-        ValidAudience =
-    builder.Configuration["Jwt:Audience"],
-
-        IssuerSigningKey =
-    new SymmetricSecurityKey(
-    key
-    )
-
-    };
-
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"] ?? throw new InvalidOperationException("JWT Key is missing in appsettings.json"))),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<SongRepository>();
+builder.Services.AddScoped<ISongRepository, SongRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<SongService>();
+builder.Services.AddScoped<UserService>();
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 // Add services
 builder.Services.AddControllers();
 
@@ -76,7 +60,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 // Swagger
 if (app.Environment.IsDevelopment())
 {
@@ -86,7 +70,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+
 
 // Apply CORS
 app.UseCors("AllowAll");
@@ -95,7 +79,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 
 app.UseAuthorization();
-
+app.UseStaticFiles();
 // Map controllers
 app.MapControllers();
 

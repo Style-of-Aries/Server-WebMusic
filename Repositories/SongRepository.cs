@@ -1,9 +1,10 @@
 using MyApi.Models;
 using MyApi.Data;
 using Microsoft.EntityFrameworkCore;
+using MyApi.Interfaces;
 namespace MyApi.Repositories
 {
-    public class SongRepository
+    public class SongRepository : ISongRepository
     {
         // private readonly List<Song> _songs = new List<Song>();
         private readonly AppDbContext _context;
@@ -30,33 +31,29 @@ namespace MyApi.Repositories
         public async Task<Song> AddSongAsync(Song song)
         {
             await _context.Songs.AddAsync(song);
-            await _context.SaveChangesAsync();
-            return song; // Trả về để controller biết bài hát vừa tạo là gì
+            // XÓA DÒNG SAVECHANGESASYNC Ở ĐÂY
+            return song;
         }
 
-        // Sửa: Dùng Update thay vì Remove + Add
-        public async Task<Song?> UpdateSongAsync(Song song)
+        public async Task<bool> UpdateSongAsync(Song song)
         {
             var existingSong = await _context.Songs.FindAsync(song.Id);
-            if (existingSong == null) return null;
+            if (existingSong == null) return false;
 
-            // Cập nhật các trường dữ liệu
             existingSong.Title = song.Title;
             existingSong.Artist = song.Artist;
-            // ... update các trường khác
 
-            await _context.SaveChangesAsync();
-            return existingSong; // Trả về đối tượng đã sửa
+            // XÓA DÒNG SAVECHANGESASYNC Ở ĐÂY
+            return true;
         }
 
-        // Xóa: Trả về bool (true nếu xóa thành công, false nếu không tìm thấy)
         public async Task<bool> DeleteSongAsync(int id)
         {
             var song = await _context.Songs.FindAsync(id);
             if (song == null) return false;
 
             _context.Songs.Remove(song);
-            await _context.SaveChangesAsync();
+            // XÓA DÒNG SAVECHANGESASYNC Ở ĐÂY
             return true;
         }
     }

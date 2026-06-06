@@ -9,6 +9,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 
 using System.Text;
+using MyApi.Interfaces;
 
 namespace MyApi.Controllers
 {
@@ -19,6 +20,7 @@ namespace MyApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AuthController> _logger;
         public AuthController(ILogger<AuthController> logger, IConfiguration configuration)
         {
