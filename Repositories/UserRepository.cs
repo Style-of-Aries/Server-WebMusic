@@ -57,14 +57,9 @@ namespace MyApi.Repositories
             return existingUser;
         }
 
-        public async Task<bool> DeleteUserAsync(long id)
+        public void Remove(User user)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return false;
-
-            _context.Users.Remove(user);
-            // XÓA DÒNG SAVECHANGESASYNC Ở ĐÂY
-            return true;
+            _context.Remove(user);
         }
 
         public async Task<bool> IsEmailExistsAsync(string email)

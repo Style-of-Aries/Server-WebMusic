@@ -5,14 +5,14 @@ using Microsoft.IdentityModel.Tokens;
 using MyApi.Interfaces;
 using MyApi.Models;
 
-public class TokenService : ITokenService
+public class TokenService
 {
     private readonly SymmetricSecurityKey _key;
 
     // Lấy secret key từ appsettings.json
     public TokenService(IConfiguration config)
     {
-        _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? throw new InvalidOperationException("JWT Key is missing in appsettings.json")));
+        _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is missing in appsettings.json")));
     }
 
     public string CreateToken(User user)
@@ -21,6 +21,7 @@ public class TokenService : ITokenService
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Name, user.FullName.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role) // Dùng để kiểm tra quyền Admin/User
         };
@@ -32,7 +33,7 @@ public class TokenService : ITokenService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(7), // Token hết hạn sau 7 ngày
+            Expires = DateTime.UtcNow.AddDays(7),// Token hết hạn sau 7 ngày
             SigningCredentials = creds
         };
 

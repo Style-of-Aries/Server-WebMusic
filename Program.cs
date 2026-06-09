@@ -19,15 +19,24 @@ builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // Cho phép 100MB
 });
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<TokenService>();
 
+// Ví dụ cách lấy Key trong Program.cs
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new InvalidOperationException("JWT Key is missing in appsettings.json");
+}
+
+// Sau đó truyền vào cấu hình Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"] ?? throw new InvalidOperationException("JWT Key is missing in appsettings.json"))),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateIssuer = false,
             ValidateAudience = false
         };
@@ -39,9 +48,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<SongService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 // Add services
 builder.Services.AddControllers();
 

@@ -64,14 +64,14 @@ namespace MyApi.Middlewares
                   { 
                       StatusCode = context.Response.StatusCode, 
                       // Ở môi trường Dev, lỗi gì cũng show message thật ra để lập trình viên đọc sửa code
-                      Message = exception.Message, 
+                      message = exception.Message, 
                       Details = exception.StackTrace?.ToString() 
                   }
                 : new ErrorDetails 
                   { 
                       StatusCode = context.Response.StatusCode, 
                       // Ở môi trường Production, nếu lỗi 500 thì giấu chữ đi, còn lỗi 400/404 nghiệp vụ thì vẫn phải show chữ tiếng Việt ra cho người dùng biết lỗi gì để họ sửa dữ liệu
-                      Message = context.Response.StatusCode == (int)HttpStatusCode.InternalServerError 
+                      message = context.Response.StatusCode == (int)HttpStatusCode.InternalServerError 
                                 ? "Đã xảy ra lỗi nghiêm trọng từ hệ thống. Vui lòng liên hệ Admin!" 
                                 : exception.Message
                   };

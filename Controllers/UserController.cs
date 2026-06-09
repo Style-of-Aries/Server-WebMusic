@@ -17,7 +17,7 @@ namespace MyApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsersAsync()
         {
-            var result = _userService.GetAllUsersAsync();
+            var result = await _userService.GetAllUsersAsync();
             return Ok(new
             {
                 message = "Get all user successfully",
@@ -30,8 +30,17 @@ namespace MyApi.Controllers
             var newUser = await _userService.AddUserAsync(dto);
             return Ok(new
             {
-                message = "Add new user successfully"
+                message = "Add new user successfully",
                 // data = newUser
+            });
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUserAsync(long id)
+        {
+            await _userService.DeleteUserAsync(id);
+            return Ok(new
+            {
+                message = "User deleted successfully"   
             });
         }
     }

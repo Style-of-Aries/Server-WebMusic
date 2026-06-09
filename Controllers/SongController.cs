@@ -31,7 +31,7 @@ namespace MyApi.Controllers
                 data = result
             });
         }
-        // [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")] 
         [HttpPost]
         public async Task<IActionResult> AddSong([FromForm] SongCreateDto dto)
         {
@@ -43,59 +43,11 @@ namespace MyApi.Controllers
             });
         }
 
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateSong(int id, [FromForm] SongUpdateDto dto)
         {
-            var song = songs.FirstOrDefault(s => s.Id == id);
-            if (song == null)
-                return NotFound();
-
-            if (dto.FileSong != null)
-            {
-                var fileSongName = Guid.NewGuid() + Path.GetExtension(dto.FileSong.FileName);
-                var musicFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "music");
-                Directory.CreateDirectory(musicFolder);
-                var songPath = Path.Combine(musicFolder, fileSongName);
-
-                using (var stream = new FileStream(songPath, FileMode.Create))
-                {
-                    await dto.FileSong.CopyToAsync(stream);
-                }
-
-                song.FileSong = $"/music/{fileSongName}";
-            }
-
-            if (dto.FileImage != null)
-            {
-                var fileImageName = Guid.NewGuid() + Path.GetExtension(dto.FileImage.FileName);
-                var imageFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-                Directory.CreateDirectory(imageFolder);
-                var imagePath = Path.Combine(imageFolder, fileImageName);
-
-                using (var stream = new FileStream(imagePath, FileMode.Create))
-                {
-                    await dto.FileImage.CopyToAsync(stream);
-                }
-
-                song.FileImage = $"/images/{fileImageName}";
-            }
-
-            if (!string.IsNullOrEmpty(dto.Title))
-                song.Title = dto.Title;
-
-            if (!string.IsNullOrEmpty(dto.Artist))
-                song.Artist = dto.Artist;
-
-            if (dto.Duration > 0)
-                song.Duration = dto.Duration;
-
-            _logger.LogInformation(
-            "Song updated successfully \n Id: {Id} \n Title: {Title} \n Artist: {Artist}",
-            song.Id,
-            song.Title,
-            song.Artist
-            );
+            var song = await _songService.UpdateSongAsync(id, dto);
             return Ok(new
             {
                 message = "Song updated successfully",
@@ -103,22 +55,11 @@ namespace MyApi.Controllers
             });
         }
 
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public IActionResult DeleteSong(int id)
+        public async Task<IActionResult> DeleteSong(int id)
         {
-            var song = songs.FirstOrDefault(s => s.Id == id);
-            if (song == null)
-                return NotFound();
-
-
-            songs.Remove(song);
-            _logger.LogInformation(
-            "Song deleted successfully \n Id: {Id} \n Title: {Title} \n Artist: {Artist}",
-            song.Id,
-            song.Title,
-            song.Artist
-            );
+            await _songService.DeleteSongAsync(id);
             return Ok(new
             {
                 message = "Song deleted successfully"

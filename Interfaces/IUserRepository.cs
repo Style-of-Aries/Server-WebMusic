@@ -17,6 +17,6 @@ namespace MyApi.Interfaces
         Task<User?> UpdateUserAsync(User user);
         
         // Chỉ cần truyền id để xóa, giảm bớt việc phải fetch object trước khi xóa
-        Task<bool> DeleteUserAsync(long id); 
+        void Remove(User user);
     }
 }

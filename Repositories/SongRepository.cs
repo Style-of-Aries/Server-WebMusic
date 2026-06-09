@@ -12,6 +12,11 @@ namespace MyApi.Repositories
         {
             _context = context;
         }
+        // Trong Repository
+        public void Remove(Song song)
+        {
+            _context.Songs.Remove(song); // Dùng trực tiếp _context để tránh nhầm lẫn
+        }
 
         public async Task<IEnumerable<Song>> GetAllSongsAsync()
         {
@@ -47,14 +52,21 @@ namespace MyApi.Repositories
             return true;
         }
 
-        public async Task<bool> DeleteSongAsync(int id)
+        // SongRepository.cs
+        public void UpdateSong(Song song)
         {
-            var song = await _context.Songs.FindAsync(id);
-            if (song == null) return false;
-
-            _context.Songs.Remove(song);
-            // XÓA DÒNG SAVECHANGESASYNC Ở ĐÂY
-            return true;
+            // Đánh dấu đối tượng là Modified để EF Core tự cập nhật các thay đổi
+            _context.Entry(song).State = EntityState.Modified;
         }
+
+        // public async Task<bool> DeleteSongAsync(int id)
+        // {
+        //     var song = await _context.Songs.FindAsync(id);
+        //     if (song == null) return false;
+
+        //     _context.Songs.Remove(song);
+        //     // XÓA DÒNG SAVECHANGESASYNC Ở ĐÂY
+        //     return true;
+        // }
     }
 }
