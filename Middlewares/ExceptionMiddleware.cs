@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 // using StudentManagement.API.Models;
 
-namespace MyApi.Middlewares
+namespace MusicAPI.Middlewares
 {
     public class ExceptionMiddleware
     {
@@ -39,12 +39,13 @@ namespace MyApi.Middlewares
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
-            
+
             // 🔥 BƯỚC CẢI TIẾN: Tự động phân loại loại lỗi dựa trên kiểu Exception văng ra
             var statusCode = exception switch
             {
                 // Nếu Service quăng lỗi KeyNotFoundException -> Trả về 404 Not Found
                 KeyNotFoundException => HttpStatusCode.NotFound,
+                UnauthorizedAccessException => HttpStatusCode.BadRequest,
 
                 // Nếu Service quăng lỗi InvalidOperationException -> Trả về 400 Bad Request
                 InvalidOperationException => HttpStatusCode.BadRequest,
@@ -60,21 +61,21 @@ namespace MyApi.Middlewares
 
             // Tạo nội dung lỗi trả về cho client
             var response = _env.IsDevelopment()
-                ? new ErrorDetails 
-                  { 
-                      StatusCode = context.Response.StatusCode, 
-                      // Ở môi trường Dev, lỗi gì cũng show message thật ra để lập trình viên đọc sửa code
-                      message = exception.Message, 
-                      Details = exception.StackTrace?.ToString() 
-                  }
-                : new ErrorDetails 
-                  { 
-                      StatusCode = context.Response.StatusCode, 
-                      // Ở môi trường Production, nếu lỗi 500 thì giấu chữ đi, còn lỗi 400/404 nghiệp vụ thì vẫn phải show chữ tiếng Việt ra cho người dùng biết lỗi gì để họ sửa dữ liệu
-                      message = context.Response.StatusCode == (int)HttpStatusCode.InternalServerError 
-                                ? "Đã xảy ra lỗi nghiêm trọng từ hệ thống. Vui lòng liên hệ Admin!" 
+                ? new ErrorDetails
+                {
+                    StatusCode = context.Response.StatusCode,
+                    // Ở môi trường Dev, lỗi gì cũng show message thật ra để lập trình viên đọc sửa code
+                    message = exception.Message,
+                    Details = exception.StackTrace?.ToString()
+                }
+                : new ErrorDetails
+                {
+                    StatusCode = context.Response.StatusCode,
+                    // Ở môi trường Production, nếu lỗi 500 thì giấu chữ đi, còn lỗi 400/404 nghiệp vụ thì vẫn phải show chữ tiếng Việt ra cho người dùng biết lỗi gì để họ sửa dữ liệu
+                    message = context.Response.StatusCode == (int)HttpStatusCode.InternalServerError
+                                ? "Đã xảy ra lỗi nghiêm trọng từ hệ thống. Vui lòng liên hệ Admin!"
                                 : exception.Message
-                  };
+                };
 
             await context.Response.WriteAsync(response.ToString());
         }

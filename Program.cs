@@ -1,19 +1,25 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using MyApi.Data;
+using MusicAPI.Models;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
-using MyApi.Repositories;
-using MyApi.Interfaces;
-using MyApi.Middlewares;
-using MyApi.Services;
+using MusicAPI.Repositories;
+using MusicAPI.Interfaces;
+using MusicAPI.Middlewares;
+using MusicAPI.Services;
 
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Lấy connection string từ appsettings.json
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Đăng ký dịch vụ Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -38,14 +44,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+
+            // THÊM 2 DÒNG NÀY VÀO:
+            ValidateLifetime = true,        // Bật kiểm tra hết hạn
+            ClockSkew = TimeSpan.Zero       // Tắt thời gian chờ cộng thêm (mặc định là 5 phút)
         };
     });
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ISongRepository, SongRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+// builder.Services.AddScoped<IUserRepositoryNew, UserRepositoryNew>();
+// builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 builder.Services.AddScoped<SongService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
@@ -53,7 +65,9 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 // Add services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -84,12 +98,12 @@ app.UseHttpsRedirection();
 
 // Apply CORS
 app.UseCors("AllowAll");
-
+app.UseStaticFiles();
 // Authorization (nếu có login sau này)
 app.UseAuthentication();
 
 app.UseAuthorization();
-app.UseStaticFiles();
+
 // Map controllers
 app.MapControllers();
 

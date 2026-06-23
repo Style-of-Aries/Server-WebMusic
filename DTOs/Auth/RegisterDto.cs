@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MyApi.DTOs.Auth
+namespace MusicAPI.DTOs.Auth
 {
     public class RegisterDto
     {

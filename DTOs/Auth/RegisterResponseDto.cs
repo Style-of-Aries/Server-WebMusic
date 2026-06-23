@@ -1,4 +1,4 @@
-namespace MyApi.DTOs.Auth
+namespace MusicAPI.DTOs.Auth
 {
     public class AuthResponseDto
     {

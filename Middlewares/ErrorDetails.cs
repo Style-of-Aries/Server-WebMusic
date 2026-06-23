@@ -1,4 +1,4 @@
-namespace MyApi.Middlewares // hoặc MyApi.Models
+namespace MusicAPI.Middlewares // hoặc MusicAPI.Models
 {
     public class ErrorDetails
     {

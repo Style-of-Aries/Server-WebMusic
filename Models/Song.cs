@@ -1,14 +1,39 @@
-namespace MyApi.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace MusicAPI.Models;
+
+public partial class Song
 {
-    public class Song
-    {
-        public int Id { get; set; }
-        public string FileSong { get; set; } = string.Empty;
-        public string FileImage { get; set; } = string.Empty;
-        public string Title { get; set; } = string.Empty;
-        public string Artist { get; set; } = string.Empty;
-        public int Duration { get; set; } // Duration in seconds
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    }
+    public long Id { get; set; }
+
+    public string Title { get; set; } = null!;
+
+    public string FileSong { get; set; } = null!;
+
+    public string FileImage { get; set; } = null!;
+
+    public int Duration { get; set; }
+
+    public int ListenCount { get; set; }
+
+    public long? AlbumId { get; set; }
+
+    public long? GenreId { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public virtual Album? Album { get; set; }
+
+    public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+
+    public virtual Genre? Genre { get; set; }
+
+    public virtual ICollection<ListenHistory> ListenHistories { get; set; } = new List<ListenHistory>();
+
+    public virtual ICollection<PlaylistSong> PlaylistSongs { get; set; } = new List<PlaylistSong>();
+
+    public virtual ICollection<SongArtist> SongArtists { get; set; } = new List<SongArtist>();
 }

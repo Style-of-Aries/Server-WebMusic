@@ -1,10 +1,11 @@
-using MyApi.DTOs.Songs;
-using MyApi.Models;
-using MyApi.Interfaces;
+using MusicAPI.DTOs.Songs;
+using MusicAPI.Models;
+using MusicAPI.Interfaces;
+using System.Text.RegularExpressions;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
+// using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace MyApi.Services
+namespace MusicAPI.Services
 {
     public class SongService
     {
@@ -23,11 +24,12 @@ namespace MyApi.Services
 
         public async Task<IEnumerable<Song>> GetAllSongsAsync()
         {
-            var songs = await _unitOfWork.Songs.GetAllSongsAsync();
+            var songs = await _unitOfWork.Songs.GetAllAsync();
             return songs;
         }
         public async Task<Song> CreateSongAsync(SongCreateDto dto)
         {
+            string pattern = @"[,|;+]|(?i)\bft\.?\b";
             var fileSongName = Guid.NewGuid() + Path.GetExtension(dto.FileSong.FileName);
             var fileImageName = Guid.NewGuid() + Path.GetExtension(dto.FileImage.FileName);
             var musicFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "music");
@@ -47,10 +49,17 @@ namespace MyApi.Services
             var audio = TagLib.File.Create(songPath);
             // --- 2. Dùng AutoMapper để khởi tạo đối tượng ---
             var newSong = _mapper.Map<Song>(dto);
-
+            string[] rawArtists = Regex.Split(audio.Tag.Performers[0] ?? "Unknown", pattern);
+            // Lọc bỏ khoảng trắng thừa (trim) và loại bỏ các chuỗi rỗng
+            var listArtistNames = rawArtists
+                .Select(a => a.Trim())
+                .Where(a => !string.IsNullOrEmpty(a))
+                .Distinct() // Tránh trùng lặp tên trong cùng 1 bài (Ví dụ: "Sơn Tùng ft. Sơn Tùng")
+                .ToList();
+            
             // --- 3. Áp dụng logic metadata ---
             newSong.Title = !string.IsNullOrEmpty(dto.Title) ? dto.Title : audio.Tag.Title ?? "Unknown Title";
-            newSong.Artist = !string.IsNullOrEmpty(dto.Artist) ? dto.Artist : (audio.Tag.Performers.Length > 0 ? audio.Tag.Performers[0] : "Unknown Artist");
+            // newSong.Artist = !string.IsNullOrEmpty(dto.Artist) ? dto.Artist : (audio.Tag.Performers.Length > 0 ? audio.Tag.Performers[0] : "Unknown Artist");
             newSong.Duration = dto.Duration.HasValue && dto.Duration.Value > 0 ? dto.Duration.Value : (int)audio.Properties.Duration.TotalSeconds;
 
             // Gán đường dẫn file
@@ -58,18 +67,17 @@ namespace MyApi.Services
             newSong.FileImage = $"/images/{fileImageName}";
 
             // --- 4. Lưu vào DB ---
-            await _unitOfWork.Songs.AddSongAsync(newSong);
+            await _unitOfWork.Songs.AddAsync(newSong);
             await _unitOfWork.CompleteAsync();
-            _logger.LogInformation("Song created: {Title} by {Artist}", newSong.Title, newSong.Artist);
 
             return newSong;
         }
         // SongService.cs
-        public async Task<Song> UpdateSongAsync(int id, SongUpdateDto dto)
+        public async Task<Song> UpdateSongAsync(long id, SongUpdateDto dto)
         {
             // 1. Lấy thông tin bài hát hiện tại từ DB
-            var existingSong = await _unitOfWork.Songs.GetSongByIdAsync(id);
-            if (existingSong == null) throw new KeyNotFoundException("Không tìm thấy bài hát.");
+            var existingSong = await _unitOfWork.Songs.GetByIdAsync(id);
+            if (existingSong == null) throw new KeyNotFoundException("Not Found Song");
 
             // 2. Xử lý Update File Nhạc (nếu có file mới)
             if (dto.FileSong != null)
@@ -106,7 +114,7 @@ namespace MyApi.Services
             // 4. Cập nhật thông tin text (Dùng AutoMapper để map các field còn lại)
             // Đổ dữ liệu từ dto VÀO existingSong
             _mapper.Map(dto, existingSong);
-            _unitOfWork.Songs.UpdateSong(existingSong);
+            _unitOfWork.Songs.Update(existingSong);
             // 5. Lưu thay đổi
             await _unitOfWork.CompleteAsync();
 
@@ -134,13 +142,13 @@ namespace MyApi.Services
                 }
             }
         }
-        public async Task DeleteSongAsync(int id)
+        public async Task DeleteSongAsync(long id)
         {
-            var song = await _unitOfWork.Songs.GetSongByIdAsync(id)
-                ?? throw new KeyNotFoundException("Không tìm thấy bài hát");
+            var song = await _unitOfWork.Songs.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException("Not Found Song");
 
             // 1. Xóa trong DB trước
-            _unitOfWork.Songs.Remove(song);
+            _unitOfWork.Songs.Delete(song);
             await _unitOfWork.CompleteAsync();
 
             // 2. Xóa file sau khi DB đã thành công

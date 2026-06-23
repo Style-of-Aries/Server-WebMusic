@@ -1,22 +1,12 @@
-using MyApi.Models;
+using MusicAPI.Models;
 
-namespace MyApi.Interfaces
+namespace MusicAPI.Interfaces
 {
-    public interface IUserRepository
+    public interface IUserRepository : IRepository<User>
     {
+        Task<User?> GetUserByEmailAsync(string email);
         // Trả về IEnumerable hoặc IQueryable để lấy danh sách
-        Task<IEnumerable<User>> GetAllUserAsync();
-        
-        Task<User?> GetUserByIdAsync(long id);
-        
-        // Thêm hàm kiểm tra tồn tại (đúng yêu cầu của bạn)
         Task<bool> IsEmailExistsAsync(string email);
         Task<bool> IsPhoneNumberExistsAsync(string phoneNumber);
-        
-        Task<User> AddUserAsync(User user);
-        Task<User?> UpdateUserAsync(User user);
-        
-        // Chỉ cần truyền id để xóa, giảm bớt việc phải fetch object trước khi xóa
-        void Remove(User user);
     }
 }

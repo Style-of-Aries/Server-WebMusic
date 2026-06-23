@@ -1,6 +1,6 @@
 // using System.Text.Json.Serialization;
 
-namespace MyApi.DTOs.Users
+namespace MusicAPI.DTOs.Users
 {
     public class UserReadDto
     {

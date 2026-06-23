@@ -1,7 +1,7 @@
 using AutoMapper;
-using MyApi.Models;
-using MyApi.DTOs.Users;
-using MyApi.DTOs.Auth;
+using MusicAPI.Models;
+using MusicAPI.DTOs.Users;
+using MusicAPI.DTOs.Auth;
 
 public class UserProfile : Profile
 {
@@ -15,6 +15,6 @@ public class UserProfile : Profile
     .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "User")); // Mặc định role là User
         CreateMap<UserCreateDto, User>()
         .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
-        
+
     }
 }

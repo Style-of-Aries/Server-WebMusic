@@ -2,8 +2,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using MyApi.Interfaces;
-using MyApi.Models;
+using MusicAPI.Interfaces;
+using MusicAPI.Models;
 
 public class TokenService
 {
@@ -33,7 +33,7 @@ public class TokenService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddDays(7),// Token hết hạn sau 7 ngày
+            Expires = DateTime.UtcNow.AddMinutes(15),// Token hết hạn sau 7 ngày
             SigningCredentials = creds
         };
 

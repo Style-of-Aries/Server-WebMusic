@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using MusicAPI.Interfaces;
 namespace MusicAPI.Repositories
 {
-    public class SongRepository : BaseRepository<Song>, ISongRepository
+    public class ArtistRepository : BaseRepository<Song>, ISongRepository
     {
         // private readonly List<Song> _songs = new List<Song>();
-        public SongRepository(AppDbContext context) : base(context) { }
+        public ArtistRepository(AppDbContext context) : base(context) { }
         // Trong Repository
     }
 }

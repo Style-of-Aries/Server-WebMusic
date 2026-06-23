@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using MyApi.Models;
-using MyApi.DTOs.Users;
-using MyApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using MusicAPI.Models;
+using MusicAPI.DTOs.Users;
+using MusicAPI.Services;
 
-namespace MyApi.Controllers
+namespace MusicAPI.Controllers
 {
     [ApiController]
     [Route("api/user")]
@@ -14,6 +15,7 @@ namespace MyApi.Controllers
         {
             _userService = userService;
         }
+        // [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllUsersAsync()
         {
@@ -25,7 +27,7 @@ namespace MyApi.Controllers
             });
         }
         [HttpPost]
-        public async Task<IActionResult> AddUserAsync([FromBody]UserCreateDto dto)
+        public async Task<IActionResult> AddUserAsync([FromBody] UserCreateDto dto)
         {
             var newUser = await _userService.AddUserAsync(dto);
             return Ok(new
@@ -34,13 +36,22 @@ namespace MyApi.Controllers
                 // data = newUser
             });
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUserAsync(long id, [FromBody] UserUpdateDto dto)
+        {
+            await _userService.UpdateUserAsync(id, dto);
+            return Ok(new
+            {
+                message = $"Update user id = {id} successfully"
+            });
+        }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUserAsync(long id)
         {
             await _userService.DeleteUserAsync(id);
             return Ok(new
             {
-                message = "User deleted successfully"   
+                message = "User deleted successfully"
             });
         }
     }

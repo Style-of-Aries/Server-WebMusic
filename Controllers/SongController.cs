@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using MyApi.Models;
-using MyApi.Services;
+using MusicAPI.Models;
+using MusicAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 
-using MyApi.DTOs.Songs;
+using MusicAPI.DTOs.Songs;
 
-namespace MyApi.Controllers
+namespace MusicAPI.Controllers
 {
     [ApiController]
     [Route("api/song")]
@@ -31,7 +31,7 @@ namespace MyApi.Controllers
                 data = result
             });
         }
-        [Authorize(Roles = "Admin")] 
+        // [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AddSong([FromForm] SongCreateDto dto)
         {
@@ -43,9 +43,9 @@ namespace MyApi.Controllers
             });
         }
 
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSong(int id, [FromForm] SongUpdateDto dto)
+        public async Task<IActionResult> UpdateSong(long id, [FromForm] SongUpdateDto dto)
         {
             var song = await _songService.UpdateSongAsync(id, dto);
             return Ok(new
@@ -55,9 +55,9 @@ namespace MyApi.Controllers
             });
         }
 
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSong(int id)
+        public async Task<IActionResult> DeleteSong(long id)
         {
             await _songService.DeleteSongAsync(id);
             return Ok(new
@@ -65,5 +65,6 @@ namespace MyApi.Controllers
                 message = "Song deleted successfully"
             });
         }
+
     }
 }
